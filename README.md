@@ -494,26 +494,11 @@ This project is for educational purposes.
 
 ## 👤 Author
 
-**Batu Batus**
+**Batuhan Sarıhan**
 - GitHub: [@bbatus](https://github.com/bbatus)
 - Repository: [k3s-deployment](https://github.com/bbatus/k3s-deployment)
 
-## 📖 Additional Documentation
 
-- [INTERVIEW_NOTES.md](INTERVIEW_NOTES.md) - Detailed technical explanations for each component
-- [Kubernetes Documentation](https://kubernetes.io/docs/)
-- [k3s Documentation](https://docs.k3s.io/)
-- [Helm Documentation](https://helm.sh/docs/)
-- [PostgreSQL Documentation](https://www.postgresql.org/docs/)
-- [Redis Documentation](https://redis.io/documentation)
-
-## 🙏 Acknowledgments
-
-- [k3s](https://k3s.io/) - Lightweight Kubernetes
-- [Helm](https://helm.sh/) - Kubernetes package manager
-- [Bitnami](https://bitnami.com/) - Helm charts for PostgreSQL and Redis
-- [PostgreSQL](https://www.postgresql.org/) - Relational database
-- [Redis](https://redis.io/) - In-memory data store
 
 ---
 
