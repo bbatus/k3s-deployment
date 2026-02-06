@@ -1,0 +1,65 @@
+# PostgreSQL Helm Chart Values
+# Chart: bitnami/postgresql
+# Purpose: Configure PostgreSQL deployment with persistence and external access
+
+# Authentication configuration
+auth:
+  # Use existing Kubernetes secret for credentials
+  existingSecret: postgresql-secret
+  secretKeys:
+    adminPasswordKey: postgres-password
+    userPasswordKey: user-password
+  
+  # Database and user configuration
+  database: postgres
+  username: postgres
+
+# Primary PostgreSQL instance configuration
+primary:
+  # Persistence configuration
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClass: local-path  # k3s default storage class
+    accessModes:
+      - ReadWriteOnce
+  
+  # Resource limits (optional, adjust based on VM resources)
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  
+  # Pod configuration
+  podAnnotations:
+    description: "PostgreSQL primary instance for local k3s cluster"
+
+# Service configuration for external access
+service:
+  type: NodePort
+  nodePorts:
+    postgresql: "30432"  # External port for accessing PostgreSQL from outside cluster (must be string)
+  ports:
+    postgresql: 5432   # Internal port
+
+# Metrics configuration
+metrics:
+  enabled: false  # Disable metrics for local development (can be enabled for production)
+
+# Backup configuration (handled separately via CronJob)
+backup:
+  enabled: false
+
+# PostgreSQL configuration
+postgresqlConfiguration:
+  max_connections: "100"
+  shared_buffers: "128MB"
+
+# Init scripts (optional)
+# Can be used to create initial databases or users
+# initdbScripts:
+#   init.sql: |
+#     CREATE DATABASE myapp;

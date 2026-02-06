@@ -1,0 +1,70 @@
+# Redis Helm Chart Values
+# Chart: bitnami/redis
+# Purpose: Configure Redis deployment with persistence and external access
+
+# Architecture configuration
+architecture: standalone  # Use standalone mode (single master, no replicas for local dev)
+
+# Authentication configuration
+auth:
+  enabled: true
+  # Use existing Kubernetes secret for password
+  existingSecret: redis-secret
+  existingSecretPasswordKey: redis-password
+
+# Master configuration
+master:
+  # Persistence configuration
+  persistence:
+    enabled: true
+    size: 5Gi
+    storageClass: local-path  # k3s default storage class
+    accessModes:
+      - ReadWriteOnce
+  
+  # Resource limits (optional, adjust based on VM resources)
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "200m"
+  
+  # Pod configuration
+  podAnnotations:
+    description: "Redis master instance for local k3s cluster"
+  
+  # Service configuration for external access
+  service:
+    type: NodePort
+    nodePorts:
+      redis: "30379"  # External port for accessing Redis from outside cluster (must be string)
+    ports:
+      redis: 6379   # Internal port
+
+# Replica configuration (disabled for standalone mode)
+replica:
+  replicaCount: 0  # No replicas for local development
+
+# Metrics configuration
+metrics:
+  enabled: false  # Disable metrics for local development
+
+# Redis configuration
+commonConfiguration: |-
+  # Enable AOF persistence
+  appendonly yes
+  appendfsync everysec
+  
+  # Memory management
+  maxmemory 256mb
+  maxmemory-policy allkeys-lru
+  
+  # Disable dangerous commands in production
+  # rename-command FLUSHDB ""
+  # rename-command FLUSHALL ""
+
+# Sentinel configuration (not used in standalone mode)
+sentinel:
+  enabled: false

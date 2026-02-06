@@ -1,0 +1,41 @@
+# Interview notes - Local only
+INTERVIEW_NOTES.md
+
+# Kubernetes Secrets - NEVER commit
+k8s/secrets/
+*.secret.yaml
+*-secret.yaml
+
+# Generated files
+*.log
+*.tmp
+
+# Backup files
+backups/
+*.sql
+*.sql.gz
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Terraform state (if using)
+*.tfstate
+*.tfstate.backup
+.terraform/
+
+# Environment files
+.env
+.env.local
+*.env
+
+# Kubeconfig files
+kubeconfig
+*.kubeconfig
+config.yaml

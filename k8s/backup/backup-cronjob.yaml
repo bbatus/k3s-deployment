@@ -1,0 +1,121 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgresql-backup
+  namespace: default
+  labels:
+    app: postgresql-backup
+    component: cronjob
+spec:
+  # Schedule: Daily at 2:00 AM (UTC)
+  # Format: minute hour day month weekday
+  schedule: "0 2 * * *"
+  
+  # Timezone (optional, requires Kubernetes 1.25+)
+  # timeZone: "UTC"
+  
+  # Job history limits
+  successfulJobsHistoryLimit: 3  # Keep last 3 successful jobs
+  failedJobsHistoryLimit: 1      # Keep last 1 failed job
+  
+  # Concurrency policy
+  concurrencyPolicy: Forbid  # Don't allow concurrent backup jobs
+  
+  jobTemplate:
+    metadata:
+      labels:
+        app: postgresql-backup
+        component: job
+    spec:
+      # Job timeout
+      activeDeadlineSeconds: 3600  # 1 hour timeout
+      
+      # Backoff limit
+      backoffLimit: 2  # Retry failed jobs 2 times
+      
+      template:
+        metadata:
+          labels:
+            app: postgresql-backup
+            component: pod
+        spec:
+          restartPolicy: OnFailure
+          
+          # Service account (optional, for kubectl access)
+          # serviceAccountName: postgresql-backup-sa
+          
+          containers:
+          - name: backup
+            image: postgres:15-alpine  # Use PostgreSQL image with pg_dumpall
+            
+            command:
+            - /bin/sh
+            - -c
+            - |
+              # Install required tools
+              apk add --no-cache bash gzip findutils coreutils
+              
+              # Run backup script
+              /scripts/backup-postgresql.sh
+            
+            env:
+            # PostgreSQL connection details
+            - name: POSTGRES_HOST
+              value: "postgresql.default.svc.cluster.local"
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_USER
+              value: "postgres"
+            
+            # Backup configuration
+            - name: BACKUP_DIR
+              value: "/backups/postgresql"
+            - name: RETENTION_DAYS
+              value: "7"
+            
+            # PostgreSQL password from secret
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgresql-secret
+                  key: postgres-password
+            
+            volumeMounts:
+            # Mount backup script
+            - name: backup-script
+              mountPath: /scripts
+              readOnly: true
+            
+            # Mount backup storage
+            - name: backup-storage
+              mountPath: /backups
+            
+            # Mount PostgreSQL secret (alternative to env var)
+            - name: postgresql-secret
+              mountPath: /var/run/secrets/postgresql
+              readOnly: true
+            
+            resources:
+              requests:
+                memory: "128Mi"
+                cpu: "100m"
+              limits:
+                memory: "512Mi"
+                cpu: "500m"
+          
+          volumes:
+          # Backup script from ConfigMap
+          - name: backup-script
+            configMap:
+              name: postgresql-backup-script
+              defaultMode: 0755  # Make script executable
+          
+          # Backup storage PVC
+          - name: backup-storage
+            persistentVolumeClaim:
+              claimName: postgresql-backup-pvc
+          
+          # PostgreSQL secret
+          - name: postgresql-secret
+            secret:
+              secretName: postgresql-secret
